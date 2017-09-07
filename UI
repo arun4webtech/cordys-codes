@@ -1,3 +1,16 @@
+function rowColor(eventObject,bgcolor,fntcolor)
+{
+	var count = eventObject.srcElement.parentElement.parentElement.parentElement;
+	count.style.backgroundColor = bgcolor;
+	count = eventObject.srcElement.parentElement.parentElement.parentElement.childElementCount;
+	for(var c=1; c<count; c++)
+	{
+		var a = eventObject.srcElement.parentElement.parentElement.parentElement.childNodes[c].childNodes[0].childNodes[0];
+		a.style.backgroundColor = bgcolor;
+		a.style.color = fntcolor;
+	}
+}
+
 function markMandatory(control)
 {
     control.setLabel("" + cordys.getTextContent(control.getLabel()) + "<font color='red'> *</font>");
