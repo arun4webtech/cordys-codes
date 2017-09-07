@@ -1,0 +1,19 @@
+function markMandatory(control)
+{
+    control.setLabel("" + cordys.getTextContent(control.getLabel()) + "<font color='red'> *</font>");
+}
+
+function markMissing(control)
+{
+    control.setLabel("<font color='red'>" + cordys.getTextContent(control.getLabel()) + " </font>");
+}
+
+function remMissing(control)
+{
+    control.setLabel("<font color='black'>" + cordys.getTextContent(control.getLabel()) + "</font>");
+}
+
+function removeLabelColour(control)
+{
+   control.setLabel("<font color='#4874ad'>" + cordys.getTextContent(control.getLabel()) + " </font>"); 
+}
