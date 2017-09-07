@@ -11,6 +11,18 @@ function rowColor(eventObject,bgcolor,fntcolor)
 	}
 }
 
+function tupleOld(tab_name)
+{
+		if(tab_name != undefined)
+			var xmlString = "<tuple><old><"+tab_name+"></"+tab_name+"></old></tuple>";
+		else
+			var xmlString = "<tuple><old></old></tuple>";
+		var parser = new DOMParser();
+		var tupleOld = parser.parseFromString(xmlString, "text/xml");
+		tupleOld = tupleOld.getElementsByTagName("tuple");
+		return tupleOld[0];
+}
+
 function markMandatory(control)
 {
     control.setLabel("" + cordys.getTextContent(control.getLabel()) + "<font color='red'> *</font>");
