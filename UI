@@ -42,3 +42,56 @@ function removeLabelColour(control)
 {
    control.setLabel("<font color='#4874ad'>" + cordys.getTextContent(control.getLabel()) + " </font>"); 
 }
+
+
+function dateCheck(inputField, format) {
+    // date in dd/mm/yyy format only accepted eg : 25/11/1990
+    // inputField - Name of the control
+    // format     - for dd/mm/yyyy - format=0, for yyyy/mm/dd - format=1
+    var length=10;
+    return function() {
+        var returnValue = true;
+        if (inputField && length) {
+            if (inputField.getValue().length >= length) {
+                returnValue = false;
+            } else {
+                var keyEntry = window.event.keyCode;
+                var data = inputField.getValue().length;
+                if ((keyEntry >= 47) && (keyEntry <= 57)) {
+                    if (keyEntry == 47) {
+                        switch (format) {
+                            case 0:
+                                if (data == 2)
+                                    returnValue = true;
+                                else if (data == 5)
+                                    returnValue = true;
+                                else
+                                    returnValue = false;
+
+                                break;
+                            case 1:
+                                if (data == 4)
+                                    returnValue = true;
+                                else if (data == 7)
+                                    returnValue = true;
+                                else
+                                    returnValue = false;
+
+                                break;
+                        }
+                    } else {
+                        if (data == 2)
+                            returnValue = false;
+                        else if (data == 5)
+                            returnValue = false;
+                        else
+                            returnValue = true;
+                    }
+
+                } else
+                    returnValue = false;
+            }
+        }
+        return (returnValue);
+    }
+}
