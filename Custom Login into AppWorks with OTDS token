@@ -1,0 +1,113 @@
+function getOTDSticket(u,p) {
+	//var inp = {  "userName": "systemadmin",  "password": "password@123",  "targetResourceId": "bd584f96-7a57-5fb4-bc01-961b26370804"}
+	var inp = {  "userName": u,  "password": p}
+	inp = JSON.stringify(inp);
+
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var response = xhttp.responseText;
+			response = JSON.parse(response);
+			ot_ticket = response.ticket;
+			customLogin(ot_ticket);
+		}
+	};
+	xhttp.open("POST", "https://otdsuat.cholainsurance.com/otdsws/rest/authentication/credentials", true);
+	xhttp.setRequestHeader("Content-type", "application/json");
+	xhttp.send(inp);
+}
+
+function determineSAMLartCookieName() {
+    if (__cordysSAMLArtifact != "") return; // Already did this
+
+    var requestString =    
+        "<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">"+
+            "<SOAP:Body>"+
+                "<GetPreLoginInfo xmlns=\"http://schemas.cordys.com/SSO/Runtime/1.0\" />"+
+            "</SOAP:Body>"+
+        "</SOAP:Envelope>";
+
+    __cordysSAMLArtifact = "";
+	
+    // Send the SAML Request to get the PreLoginInfo
+    var xmlhttp = getConnection();
+    xmlhttp.open("POST", __cordysGatewayURL, false);
+    xmlhttp.send(requestString);
+    
+    // Keep the saml artifact for reuse
+    __cordysSAMLArtCookieName = getSamlArtifactCookieName(xmlhttp.responseText);
+	__cordysSAMLArtCookiePath = getSamlArtifactCookiePath(xmlhttp.responseText);
+	__cordysBaseUrlPath 	  = getBaseUrlPath(xmlhttp.responseText);
+}	
+
+
+function getConnection() {
+    var xmlHttp=null;
+    try {
+        xmlHttp = new XMLHttpRequest();    // Firefox, Opera 8.0+, Safari, IE7+
+    } catch (e) {
+        // Internet Explorer
+        try {
+            xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (e) {
+            xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+    }
+    return xmlHttp;
+}
+
+
+
+/**********************************************************************************************
+ * function getSAMLartifactfromReponse :: Cross browser implementation to extract the saml artifact.
+ * Note that no xpath is used as we don't load the cordys libraries.
+ */
+function getSAMLartifactfromReponse(response) {
+	var SAMLART_START_TAG            = "<samlp:AssertionArtifact xmlns:samlp=\"urn:oasis:names:tc:SAML:1.0:protocol\">";
+	var SAMLART_END_TAG              = "</samlp:AssertionArtifact>";
+	
+    var saStartPos   = response.indexOf(SAMLART_START_TAG);
+    var saEndPos     = response.indexOf(SAMLART_END_TAG);
+    var samlArtifact = (saStartPos>-1 && saEndPos>-1)?response.substring(saStartPos+SAMLART_START_TAG.length, saEndPos):"";
+    return samlArtifact;
+}
+
+
+function singninRequestForm(ot_ticket) {
+	   
+		return "<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">"+
+			"<SOAP:Header>"+     
+				"<OTAuthentication xmlns=\"urn:api.bpm.opentext.com\">"+
+					"<AuthenticationToken>"+ot_ticket+"</AuthenticationToken>"+
+				"</OTAuthentication>"+
+			"</SOAP:Header>"+
+			"<SOAP:Body>"+ 
+				"<samlp:Request xmlns:samlp=\"urn:oasis:names:tc:SAML:1.0:protocol\" MajorVersion=\"1\" MinorVersion=\"1\" IssueInstant=\"2021-12-24T16:47:13.359Z\" RequestID=\"a5470c392e-264e-jopl-56ac-4397b1b416d\">"+
+					"<samlp:AuthenticationQuery>"+
+						"<saml:Subject xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\">"+
+							"<saml:NameIdentifier Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified\"/>"+
+						"</saml:Subject>"+
+					"</samlp:AuthenticationQuery>"+
+				"</samlp:Request>"+
+			"</SOAP:Body>"+
+		"</SOAP:Envelope>";
+}
+
+function customLogin(ot_ticket) {
+	var requestString = singninRequestForm(ot_ticket)
+
+    // Send the SAML Request to get the Assertion and Artifact
+	var xmlhttp = getConnection();
+	var cordysBaseUrl                = "/cordys";		// if it is not local , mention the full address
+	var __cordysGatewayClass         = "/com.eibus.web.soap.Gateway.wcp";
+	var __cordysGatewayURL           = cordysBaseUrl + __cordysGatewayClass;
+    xmlhttp.open("POST", __cordysGatewayURL, false);
+    xmlhttp.send(requestString);
+	
+	__cordysSAMLArtifact = getSAMLartifactfromReponse(xmlhttp.responseText);
+	
+	determineSAMLartCookieName();
+
+    document.cookie=__cordysSAMLArtCookieName+"="+__cordysSAMLArtifact+"; path="+__cordysSAMLArtCookiePath+";";
+}
+
